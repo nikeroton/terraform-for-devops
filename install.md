@@ -1,4 +1,4 @@
-to install and setup the terraform on your server ,use the following commands for the linux
+# to install and setup the terraform on your server ,use the following commands for the linux
 
 sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
 wget -O- https://apt.releases.hashicorp.com/gpg | \
@@ -15,6 +15,6 @@ sudo apt-get install terraform
 
 
 
-to verify the insallation use
+# to verify the insallation use
 
 terraform -version
