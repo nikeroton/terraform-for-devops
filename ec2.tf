@@ -1,76 +1,73 @@
-data "aws_ami" "os_image" {
-  owners = ["099720109477"]
-  most_recent = true
-  filter {
-    name   = "state"
-    values = ["available"]
-  }
-  filter {
-    name = "name"
-    values = ["ubuntu/images/hvm-ssd/*amd64*"]
-  }
-}
+#key pair
 
-resource "aws_key_pair" "deployer" {
-  key_name   = "terra-automate-key"
+resource "aws_key_pair" "my-key" {
+  key_name   = "terra-key"
   public_key = file("terra-key.pub")
 }
-
+# VPC and security
 resource "aws_default_vpc" "default" {
-
 }
+resource "aws_security_group" "my-security" {
+    name        = "terra-sg"
+    description = "Allow TLS inbound traffic and all outbound traffic using terraform"
+    vpc_id      = aws_default_vpc.default.id # interpollation
 
-resource "aws_security_group" "allow_user_to_connect" {
-  name        = "allow TLS"
-  description = "Allow user to connect"
-  vpc_id      = aws_default_vpc.default.id
-  ingress {
-    description = "port 22 allow"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+
+  # inbound rules
+  
+ingress {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "ssh open"
   }
 
+  ingress {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "http open"
+  }
+
+  ingress {
+      from_port   = 8000
+      to_port     = 8000
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "ssh open"
+  }
+
+  # outbound rules
   egress {
-    description = " allow all outgoing traffic "
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+      description = "all access"
   }
 
-  ingress {
-    description = "port 80 allow"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "port 443 allow"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   tags = {
-    Name = "mysecurity"
+     Name = "terra-sg"
   }
 }
 
-resource "aws_instance" "testinstance" {
-  ami             = data.aws_ami.os_image.id
-  instance_type   = var.instance_type
-  key_name        = aws_key_pair.deployer.key_name
-  security_groups = [aws_security_group.allow_user_to_connect.name]
-  tags = {
-    Name = "Terra-Automate"
-  }
+#ec2 instance
+
+resource "aws_instance" "my-instance" {
+    key_name = aws_key_pair.my-key.key_name
+    security_groups = [aws_security_group.my-security.name]
+    instance_type           = "t2.micro"
+    ami                     = "ami-03fd334507439f4d1"
+
   root_block_device {
-    volume_size = 10 
-    volume_type = "gp3"
+      volume_size = 10
+      volume_type = "gp3"
   }
+  tags = {
+    Name = "apna-server"
+  }
+ 
 }
