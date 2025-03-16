@@ -14,8 +14,7 @@ resource "aws_security_group" "my-security" {
 
 
   # inbound rules
-  
-ingress {
+  ingress {
       from_port   = 22
       to_port     = 22
       protocol    = "tcp"
@@ -53,17 +52,15 @@ ingress {
      Name = "terra-sg"
   }
 }
-
 #ec2 instance
-
 resource "aws_instance" "my-instance" {
     key_name = aws_key_pair.my-key.key_name
     security_groups = [aws_security_group.my-security.name]
-    instance_type           = "t2.micro"
-    ami                     = "ami-03fd334507439f4d1"
+    instance_type           = var.aws_instance_type
+    ami                     = var.ec2_ami_id
 
   root_block_device {
-      volume_size = 10
+      volume_size = var.root_volume_size
       volume_type = "gp3"
   }
   tags = {
