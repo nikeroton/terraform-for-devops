@@ -54,6 +54,7 @@ resource "aws_security_group" "my-security" {
 }
 #ec2 instance
 resource "aws_instance" "my-instance" {
+    count= 2    // for sae name instance
     key_name = aws_key_pair.my-key.key_name
     security_groups = [aws_security_group.my-security.name]
     instance_type           = var.aws_instance_type
